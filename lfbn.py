@@ -9,7 +9,7 @@ import pyAgrum.lib.image as gumimage
 
 def make_tree(a, t):
 
-    if len(t.leaves) > 2:
+    if len(t.leaves) > 4:
         return t
     else:
         if random.random() < 0.1:
@@ -112,6 +112,7 @@ def create_dag(S):
                         bn.addArc(q.name, n.name())
                     except gum.InvalidDirectedCycle:
                         print("added directed cycle - error")
+                        exit("exit")
                         return 0
 
     print(bn)
@@ -159,18 +160,26 @@ def create_dag(S):
     gumimage.export(bn, "test_export.png")  # a causal model has a toDot method.
     gumimage.exportInference(bn, "test_export1.pdf")
 
-def traverse_inorder(r):
+def traverse_inorder(r, s):
+    #print("String   ", s)
     if len(r.children) == 1:
-        print(r.name)
-    if len(r.children) == 0:
-        print(r.name, end="")
+        s1 = r.name
+        s1 += traverse_inorder(r.children[0], s1)
+        return f"{s1}"
+    elif len(r.children) == 0:
+        s = r.name
+        return s
     else:
-        print("(", end="")
-        traverse_inorder(r.children[0])
-        print(r.name, end="")
+        s = traverse_inorder(r.children[0], s)
+        s = "("+s
+        s += r.name
+
         if len(r.children) > 1:
-            traverse_inorder(r.children[1])
-        print(")", end="")
+            s1 = traverse_inorder(r.children[1], s)
+            s += f"{s1}"
+        s += ")"
+
+    return s
 
 
 
@@ -180,11 +189,9 @@ def save_rules(S):
         print("\nTRAVERSE INORDER \n")
         for pre, fill, node in RenderTree(r):
             print("%s%s%s" % (pre, node.name, node.val))
-        s = traverse_inorder(r)
-        string_t = string_t + f"{l} <=> {[node.name for node in PreOrderIter(r)]} \n\n"
-
-
-
+        s = traverse_inorder(r, "")
+        print("end ", s)
+        string_t = string_t + f"{l} <=> {s} \n\n"
     textfile = open("ruleset.txt", "w")
     textfile.write(string_t)
     textfile.close()
@@ -197,7 +204,7 @@ def gen_sentence(a, s):
     else:
         a = [a1 for a1 in a if a1 not in s]
 
-        if random.random() < 0.1:
+        if random.random() < 0.5:
             s1 = f"(NOT({s}))"
             return gen_sentence(a, s1)
         x = random.choice(a)
@@ -213,9 +220,9 @@ atoms = ["a", "b", "c", "d", "e", "f", "g", "h"]
 l_atoms = len(atoms)
 connectives = ["AND", "OR", "NOT"]   # conjunction, disjunction, negation
 
-max_sen_length = 4
+max_sen_length = 7
 LHS = []
-num_S = 6    # num_S < l_atoms
+num_S = 4    # num_S < l_atoms
 S = []
 
 

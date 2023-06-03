@@ -1,15 +1,11 @@
 RULES 
 
 
-b <=> ['OR', 'd', 'OR', 'e', 'a'] 
+f <=> ((bAND(dOR(hORg)))ANDe) 
 
-h <=> ['AND', 'AND', 'g', 'a', 'b'] 
+c <=> (((dAND(hORe))ANDb)ANDg) 
 
-f <=> ['OR', 'd', 'AND', 'c', 'h'] 
+e <=> (NOTNOT(gOR(bAND(hANDd)))ANDf) 
 
-g <=> ['AND', 'OR', 'e', 'f', 'b'] 
-
-a <=> ['AND', 'OR', 'c', 'b', 'h'] 
-
-c <=> ['AND', 'h', 'OR', 'd', 'b'] 
+h <=> ((eAND((gANDc)ANDf))ORa) 
 
