@@ -4,64 +4,95 @@ from anytree import Node, RenderTree, PreOrderIter, PostOrderIter
 import pyAgrum as gum
 import pyAgrum.lib.notebook as gnb
 import pyAgrum.lib.image as gumimage
+import itertools
+
+
+
 #from IPython.display import Image # to display the exported images
 
 
 def make_tree(a, t):
 
-    if len(t.leaves) > 4:
+    if len(t.leaves) > 1:
         return t
     else:
-        if random.random() < 0.1:
-            t1 = Node("NOT", val=-1)
+        if random.random() < 0.3:
+            t1 = Node("NOT", val=None)
             t.parent = t1
             return make_tree(a, t1)
         else:
             # pick new item
             a2 = random.choice(a)
             a.remove(a2)
-            t1 = Node(random.choice(["AND", "OR"]), val=-1)
+            t1 = Node(random.choice(["AND", "OR"]), val=None)
             # random choice left or right branching
             if random.random() >= 0.5:
-                tx = Node(a2, parent=t1, val=-1)
+                tx = Node(a2, parent=t1, val=None)
                 t.parent = t1
             else:
                 t.parent = t1
-                tx = Node(a2, parent=t1, val=-1)
+                tx = Node(a2, parent=t1, val=None)
 
             return make_tree(a, t1)
 
+
+def three_val_log(p, q, op):
+    if p in [0, 1] and q in [0, 1]:
+        if op == "AND":
+            return int(p and q)
+        elif op == "OR":
+            return int(p or q)
+    else:
+        if op == "OR":
+            return max(p, q)
+        elif op == "AND":
+            return max(min(p, q), 0)    # return 0 if false
+
+
 def eval_tree(t):
-    if t.val == 1 or t.val == 0:
+    #### three-valued logic?????? my bro???
+    if t.val == 1 or t.val == 0 or t.val == -1:
         return t.val
 
     if len(t.children) == 1:
         left_val = eval_tree(t.children[0])
-        right_val = -1
+        right_val = None
     else:
         left_val = eval_tree(t.children[0])
         right_val = eval_tree(t.children[1])
 
     if t.name == "AND":
-        t.val = int(left_val and right_val)
-        return int(left_val and right_val)
+        t.val = three_val_log(left_val, right_val, "AND")
+        return t.val
+        #t.val = int(left_val and right_val)
+        #return int(left_val and right_val)
     if t.name == "OR":
-        t.val = int(left_val or right_val)
-        return int(left_val or right_val)
+        t.val = three_val_log(left_val, right_val, "OR")
+        return t.val
+        #t.val = int(left_val or right_val)
+        #return int(left_val or right_val)
     if t.name == "NOT":
         if left_val == 1:
             t.val = 0
-        else:
+        elif left_val == 0:
             t.val = 1
+        else:
+            t.val = -1
         return t.val
 
+
+def get_leaf_node_vals(t, valuation):
+    node_vals = []
+    for leaf_node in t.leaves:
+        node_vals.append((leaf_node.name, valuation[leaf_node.name]))
+    return node_vals
 
 
 def evaluate_tree(t, valuation):
     # set valuation on the leaf nodes
 
     for n in PostOrderIter(t):
-        n.val = -1
+        n.val = None
 
     for leaf_node in t.leaves:
         leaf_node.val = valuation[leaf_node.name]
@@ -70,6 +101,7 @@ def evaluate_tree(t, valuation):
     prob = eval_tree(t)
     for pre,fill, node in RenderTree(t):
         print("%s%s%s"%(pre, node.name, node.val))
+
     return prob
 
 def check_acyclic(S):
@@ -181,21 +213,91 @@ def traverse_inorder(r, s):
 
     return s
 
-def predict_output():
+def get_combinations(priors):
+    #print("PRIOR LIST")
+    l = list(itertools.product([1, 0], repeat=len(priors)))
+    #print(l)
+    dict_list = []
+    for val in l:
+        d = {}
+        for i in range(0, len(priors)):
+            d[priors[i]] = val[i]
+        dict_list.append(d)
+    return dict_list
+
+
+def predict_output(S):
+    bn = gum.loadBN("bnsave.net")
+    prior_nodes = []
+    output_node = []
+    for name in bn.names():
+        node_id = bn.idFromName(name)
+        if len(bn.parents(node_id)) == 0:
+            prior_nodes.append(node_id)
+        if len(bn.children(node_id)) == 0:
+            output_node.append(node_id)
+
+    val_dict = {}
+    know_val_dict = {}
+
+    dict_list_valuations = get_combinations(prior_nodes)
+
+    for valuation in dict_list_valuations:
+        for node_name in bn.names():
+            if node_name not in valuation.keys():
+                valuation[node_name] = -1
+
+
+    for name in bn.names():
+        if bn.idFromName(name) in prior_nodes:
+            if random.random() > 0.5:
+                x = 1
+            else:
+                x = 0
+            know_val_dict[name] = x
+            val_dict[bn.idFromName(name)] = x
+        else:
+            know_val_dict[name] = -1
+            #val_dict[bn.idFromName(name)] = -1
+
+    predicted_valuations = []
+    ie = gum.LazyPropagation(bn)
+    ie.setEvidence(val_dict)
+    ie.makeInference()
+    for lhs, rhs in S:
+        p = evaluate_tree(rhs, know_val_dict)
+        predicted_valuations.append(f"v({lhs}) == {p}")
+        #print(ie.posterior(lhs))
+        post = ie.posterior(lhs)[1]
+
+        predicted_valuations.append(f"P({lhs}) == {post}")
+        predicted_valuations.append({int(post) == p})
+
+    print(know_val_dict)
+    print(predicted_valuations)
+
+
+    gumimage.exportInference(bn, "test_export_inference.png", evs=val_dict)
+
+
+    #print(val_dict)
+
+
+    # evaluate the network for all
     # tree inference
     # compare with truth table output
-    pass
+
 
 
 
 def save_rules(S):
     string_t = "RULES \n\n\n"
     for l, r in S:
-        print("\nTRAVERSE INORDER \n")
-        for pre, fill, node in RenderTree(r):
-            print("%s%s%s" % (pre, node.name, node.val))
+        #print("\nTRAVERSE INORDER \n")
+        #for pre, fill, node in RenderTree(r):
+        #    print("%s%s%s" % (pre, node.name, node.val))
         s = traverse_inorder(r, "")
-        print("end ", s)
+        #print("end ", s)
         string_t = string_t + f"{l} <=> {s} \n\n"
     textfile = open("ruleset.txt", "w")
     textfile.write(string_t)
@@ -227,7 +329,7 @@ connectives = ["AND", "OR", "NOT"]   # conjunction, disjunction, negation
 
 max_sen_length = 7
 LHS = []
-num_S = 4    # num_S < l_atoms
+num_S = 2    # num_S < l_atoms
 S = []
 
 
@@ -248,17 +350,18 @@ for i in range(0, num_S):
     a.remove(s)
 
     rhs = make_tree(a, Node(s))
-    for pre,fill, node in RenderTree(rhs):
-        print("%s%s"%(pre, node.name))
+    #for pre,fill, node in RenderTree(rhs):
+    #    print("%s%s"%(pre, node.name))
     #rhs = gen_sentence(a, random.choice(a))
     #print(f"{lhs} <=> {rhs}")
     evaluate_tree(rhs, valuation)
-    for pre,fill, node in RenderTree(rhs):
-        print("%s%s %s"%(pre, node.name, node.val))
+    #for pre,fill, node in RenderTree(rhs):
+    #    print("%s%s %s"%(pre, node.name, node.val))
 
     S.append((lhs, rhs))
 
 
 create_dag(S)
 save_rules(S)
+predict_output(S)
 

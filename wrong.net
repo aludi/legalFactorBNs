@@ -1,0 +1,100 @@
+net
+{
+    node_size = (80 40);
+    HR_DBN_Num_Slices = "5";
+    HR_Desc = "";
+    HR_OOBN_CheckConsistency = "1";
+    HR_OOBN_FitExpand = "1";
+    HR_Zoom_ZoomFactor = "100";
+    HR_Groups_GroupColors = "";
+    HR_Groups_GroupNames = "";
+    HR_Groups_UserGroupsNo = "0";
+    HR_Utility_Link = "63";
+    HR_Probabilistic_Link = "63";
+    HR_Functional_Link = "63";
+    HR_Binding_Link = "63";
+    HR_Information_Arc = "63";
+    HR_Color_Interface = "21";
+    HR_Color_Instance = "0";
+    HR_Color_DiscreteFunction = "5";
+    HR_Color_Function = "4";
+    HR_Color_Utility = "36";
+    HR_Color_Decision = "17";
+    HR_Color_ContinuousChance = "48";
+    HR_Color_DiscreteChance = "16";
+    HR_Monitor_InitSD = "2";
+    HR_Monitor_Utility_Arrange = "0";
+    HR_Monitor_Mean_Variance = "1";
+    HR_Monitor_Chance_Utility = "1";
+    HR_Monitor_InitStates = "5";
+    HR_Monitor_OpenGraph = "0";
+    HR_Monitor_GraphPrecision = "100";
+    HR_Monitor_AutoUpdGraph = "0";
+    HR_Compile_MaxMinimalSeparators = "100000";
+    HR_Compile_ApproxEpsilon = "1.0E-5";
+    HR_Compile_Approximate = "0";
+    HR_Compile_SaveToMemory = "0";
+    HR_Compile_Compress = "0";
+    HR_Compile_TriangMethod = "0";
+    HR_Propagate_AutoNormal = "1";
+    HR_Propagate_AutoSum = "1";
+    HR_Propagate_Auto = "1";
+    HR_Font_Italic = "0";
+    HR_Font_Weight = "400";
+    HR_Font_Size = "-12";
+    HR_Font_Name = "com.apple.laf.AquaFonts$DerivedUIResourceFont[family=Lucida Grande,name=Lucida Grande,style=plain,size=13]";
+    HR_Grid_GridShow = "0";
+    HR_Grid_GridSnap = "0";
+    HR_Grid_Y = "40";
+    HR_Grid_X = "40";
+}
+
+node b {
+   states = (0 1 );
+   label = "b";
+   ID = "b";
+}
+
+node g {
+   states = (0 1 );
+   label = "g";
+   ID = "g";
+}
+
+node f {
+   states = (0 1 );
+   label = "f";
+   ID = "f";
+}
+
+node e {
+   states = (0 1 );
+   label = "e";
+   ID = "e";
+}
+
+potential ( b | g   f   ) {
+   data = 
+   (((   1   0)   % f=0   g=0   
+   (   0   1))   % f=1   g=0   
+   ((   0   1)   % f=0   g=1   
+   (   0   1)));   % f=1   g=1   
+}
+
+potential (g) {
+   data = (  1 1);
+}
+
+potential (f) {
+   data = (  1 1);
+}
+
+potential ( e | b   f   ) {
+   data = 
+   (((   1   0)   % f=0   b=0   
+   (   0   1))   % f=1   b=0   
+   ((   1   0)   % f=0   b=1   
+   (   1   0)));   % f=1   b=1   
+}
+
+

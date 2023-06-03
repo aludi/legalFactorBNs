@@ -5,18 +5,6 @@ net {
   node_size = (50 50);
 }
 
-node a {
-   states = (0 1 );
-   label = "a";
-   ID = "a";
-}
-
-node g {
-   states = (0 1 );
-   label = "g";
-   ID = "g";
-}
-
 node c {
    states = (0 1 );
    label = "c";
@@ -29,16 +17,16 @@ node b {
    ID = "b";
 }
 
-node d {
+node a {
    states = (0 1 );
-   label = "d";
-   ID = "d";
+   label = "a";
+   ID = "a";
 }
 
-node f {
+node e {
    states = (0 1 );
-   label = "f";
-   ID = "f";
+   label = "e";
+   ID = "e";
 }
 
 node h {
@@ -47,47 +35,41 @@ node h {
    ID = "h";
 }
 
-potential ( a | g   c   b   ) {
+node g {
+   states = (0 1 );
+   label = "g";
+   ID = "g";
+}
+
+potential ( c | b   a   ) {
    data = 
-   ((((   1   0)   % b=0   c=0   g=0   
-   (   0   1))   % b=1   c=0   g=0   
-   ((   0   1)   % b=0   c=1   g=0   
-   (   0   1)))   % b=1   c=1   g=0   
-   (((   0   1)   % b=0   c=0   g=1   
-   (   0   1))   % b=1   c=0   g=1   
-   ((   0   1)   % b=0   c=1   g=1   
-   (   0   1))));   % b=1   c=1   g=1   
-}
-
-potential (g) {
-   data = (  1 1);
-}
-
-potential (c) {
-   data = (  1 1);
+   (((   1   0)   % a=0   b=0   
+   (   0   1))   % a=1   b=0   
+   ((   0   1)   % a=0   b=1   
+   (   0   1)));   % a=1   b=1   
 }
 
 potential (b) {
    data = (  1 1);
 }
 
-potential ( d | f   h   a   ) {
-   data = 
-   ((((   1   0)   % a=0   h=0   f=0   
-   (   1   0))   % a=1   h=0   f=0   
-   ((   1   0)   % a=0   h=1   f=0   
-   (   0   1)))   % a=1   h=1   f=0   
-   (((   1   0)   % a=0   h=0   f=1   
-   (   0   1))   % a=1   h=0   f=1   
-   ((   1   0)   % a=0   h=1   f=1   
-   (   0   1))));   % a=1   h=1   f=1   
-}
-
-potential (f) {
+potential (a) {
    data = (  1 1);
 }
 
+potential ( e | h   g   ) {
+   data = 
+   (((   1   0)   % g=0   h=0   
+   (   0   1))   % g=1   h=0   
+   ((   1   0)   % g=0   h=1   
+   (   1   0)));   % g=1   h=1   
+}
+
 potential (h) {
+   data = (  1 1);
+}
+
+potential (g) {
    data = (  1 1);
 }
 

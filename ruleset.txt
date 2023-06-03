@@ -1,11 +1,7 @@
 RULES 
 
 
-f <=> ((bAND(dOR(hORg)))ANDe) 
+c <=> (bORa) 
 
-c <=> (((dAND(hORe))ANDb)ANDg) 
-
-e <=> (NOTNOT(gOR(bAND(hANDd)))ANDf) 
-
-h <=> ((eAND((gANDc)ANDf))ORa) 
+e <=> (NOThANDg) 
 
