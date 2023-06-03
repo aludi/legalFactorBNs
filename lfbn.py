@@ -213,7 +213,7 @@ def traverse_inorder(r, s):
 
     return s
 
-def get_combinations(priors):
+def get_combinations(priors):   # ids
     #print("PRIOR LIST")
     l = list(itertools.product([1, 0], repeat=len(priors)))
     #print(l)
@@ -241,43 +241,36 @@ def predict_output(S):
     know_val_dict = {}
 
     dict_list_valuations = get_combinations(prior_nodes)
+    predicted_valuations = []
 
     for valuation in dict_list_valuations:
+        print(val_dict)
         for node_name in bn.names():
-            if node_name not in valuation.keys():
-                valuation[node_name] = -1
-
-
-    for name in bn.names():
-        if bn.idFromName(name) in prior_nodes:
-            if random.random() > 0.5:
-                x = 1
+            if bn.idFromName(node_name) in valuation.keys():
+                val_dict[node_name] = valuation[bn.idFromName(node_name)]
             else:
-                x = 0
-            know_val_dict[name] = x
-            val_dict[bn.idFromName(name)] = x
-        else:
-            know_val_dict[name] = -1
-            #val_dict[bn.idFromName(name)] = -1
+                val_dict[node_name] = -1
 
-    predicted_valuations = []
-    ie = gum.LazyPropagation(bn)
-    ie.setEvidence(val_dict)
-    ie.makeInference()
-    for lhs, rhs in S:
-        p = evaluate_tree(rhs, know_val_dict)
-        predicted_valuations.append(f"v({lhs}) == {p}")
-        #print(ie.posterior(lhs))
-        post = ie.posterior(lhs)[1]
+        ie = gum.LazyPropagation(bn)
+        ie.setEvidence(valuation)
+        ie.makeInference()
+        predicted_valuations.append(f"for valuation {val_dict}:")
+        for lhs, rhs in S:
+            p = evaluate_tree(rhs, val_dict)
+            predicted_valuations.append(f"v({lhs}) == {p}")
+            #print(ie.posterior(lhs))
+            post = ie.posterior(lhs)[1]
 
-        predicted_valuations.append(f"P({lhs}) == {post}")
-        predicted_valuations.append({int(post) == p})
-
-    print(know_val_dict)
-    print(predicted_valuations)
+            predicted_valuations.append(f"P({lhs}) == {post}")
+            predicted_valuations.append({int(post) == p})
+            predicted_valuations.append("\n\n\n")
 
 
-    gumimage.exportInference(bn, "test_export_inference.png", evs=val_dict)
+    for x in predicted_valuations:
+        print(x)
+
+
+    #gumimage.exportInference(bn, "test_export_inference.png", evs=val_dict)
 
 
     #print(val_dict)

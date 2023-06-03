@@ -1,7 +1,7 @@
 RULES 
 
 
-c <=> (bORa) 
+h <=> (dORg) 
 
-e <=> (NOThANDg) 
+b <=> (cANDa) 
 
