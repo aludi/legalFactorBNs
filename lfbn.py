@@ -87,6 +87,13 @@ def get_leaf_node_vals(t, valuation):
         node_vals.append((leaf_node.name, valuation[leaf_node.name]))
     return node_vals
 
+def get_leaf_nodes(t):
+    node_vals = []
+    for leaf_node in t.leaves:
+        node_vals.append((leaf_node.name))
+    return node_vals
+
+
 
 def evaluate_tree(t, valuation):
     # set valuation on the leaf nodes
@@ -324,11 +331,12 @@ max_sen_length = 7
 LHS = []
 num_S = 2    # num_S < l_atoms
 S = []
+rhs_all = []
 
 
 for i in range(0, num_S):
     lhs = random.choice(atoms)
-    while lhs in LHS:
+    while lhs in LHS or lhs in rhs_all:
         lhs = random.choice(atoms)
     LHS.append(lhs)
 
@@ -343,6 +351,13 @@ for i in range(0, num_S):
     a.remove(s)
 
     rhs = make_tree(a, Node(s))
+
+
+    l = get_leaf_nodes(rhs)
+    for node in l:
+        rhs_all.append(node)
+
+
     #for pre,fill, node in RenderTree(rhs):
     #    print("%s%s"%(pre, node.name))
     #rhs = gen_sentence(a, random.choice(a))

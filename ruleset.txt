@@ -1,7 +1,7 @@
 RULES 
 
 
-h <=> (dORg) 
+a <=> (dANDf) 
 
-b <=> (cANDa) 
+e <=> (aORb) 
 
