@@ -181,6 +181,11 @@ def traverse_inorder(r, s):
 
     return s
 
+def predict_output():
+    # tree inference
+    # compare with truth table output
+    pass
+
 
 
 def save_rules(S):
