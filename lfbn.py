@@ -111,6 +111,26 @@ def evaluate_tree(t, valuation):
 
     return prob
 
+def evaluate_tree_set(S, valuation):
+    # do forward chaining
+
+
+
+    for lhs, rhs in S:
+        evaluate_tree(rhs, valuation)
+        if valuation[lhs] != rhs.root.val:
+            if valuation[lhs] == -1:
+                valuation[lhs] = rhs.root.val
+                print(f"updated value {lhs} to {rhs.root.val}")
+            else:
+                print("conflict")
+                print(lhs, rhs.root.val, valuation[lhs])
+
+    for x in valuation.keys():
+        print(x, valuation[x])
+    return valuation
+    #exit()
+
 def check_acyclic(S):
     for (lhs, tree) in S:
         n = tree.leaves()
@@ -262,15 +282,22 @@ def predict_output(S):
         ie.setEvidence(valuation)
         ie.makeInference()
         predicted_valuations.append(f"for valuation {val_dict}:")
-        for lhs, rhs in S:
-            p = evaluate_tree(rhs, val_dict)
-            predicted_valuations.append(f"v({lhs}) == {p}")
-            #print(ie.posterior(lhs))
-            post = ie.posterior(lhs)[1]
+        p_dict_val = evaluate_tree_set(S, val_dict)
+        predicted_valuations.append(f"for inferred valuation {p_dict_val}:")
 
-            predicted_valuations.append(f"P({lhs}) == {post}")
-            predicted_valuations.append({int(post) == p})
-            predicted_valuations.append("\n\n\n")
+
+        #for lhs, rhs in S:
+        #p = evaluat
+        #
+        # e_tree(rhs, val_dict)
+        # BREAKs
+        predicted_valuations.append(f"v({lhs}) == {p_dict_val[lhs]}")
+        #print(ie.posterior(lhs))
+        post = ie.posterior(lhs)[1]
+
+        predicted_valuations.append(f"P({lhs}) == {post}")
+        predicted_valuations.append({int(post) == p_dict_val[lhs]})
+        predicted_valuations.append("\n\n\n")
 
 
     for x in predicted_valuations:
@@ -287,6 +314,77 @@ def predict_output(S):
     # tree inference
     # compare with truth table output
 
+def rewrite_rules(S, x, list_t):
+    print("rules in S:")
+    for l, r in S:
+        print(l, r.leaves)
+
+    #exit()
+
+def rewrite_rules2(rule_set, S, list_t):
+    if len(rule_set) == 0:
+        print("new reduced rules")
+        for rule in list_t:
+            for pre, fill, node in RenderTree(rule[1]):
+                print("%s%s %s" % (pre, node.name, node.val))
+        print(list_t)
+        return list_t
+    n = rule_set[0]
+    n_l, n_r = n
+    flag = 0
+    for lh, t in list_t:
+        for node1 in PostOrderIter(t):
+            print(node1.name, n_l)
+            if node1.name == n_l:
+                n_r.parent = node1.parent
+                node1.parent=None
+                flag = 1
+    for node1 in PostOrderIter(n_r):
+        for (lh, t) in list_t:
+            print(node1.name, lh)
+            if lh == node1.name:
+                t.parent = node1.parent
+                node1.parent = None
+                flag = 1
+
+    if flag == 0:  # rule does not fit with tree
+        list_t.append((n_l, n_r))
+
+    rewrite_rules(rule_set[1:], list_t)
+
+
+
+
+
+def rewrite_rules_1(S):   # rewrite rewrite algorithm
+    l_l = []
+    rule_replaced = []
+
+    for i in range(0, len(S)):
+        (lhs, rhs) = S[i]
+        for (r_l, r_r) in S[i+1:]:
+            for node1 in PostOrderIter(r_r):
+                if node1.name == lhs:
+                    print("merge needed", node1)
+                    rhs.parent = node1
+                    l_l.append(r_l)
+
+
+    l = []
+    for (lhs, rhs) in S:
+        if rhs.root not in l:
+            l.append(rhs.root)
+            #l_l.append(lhs) # todo bug
+
+    print("printing unique root trees")
+    for rhs in l:
+        print(rhs)
+        for pre, fill, node in RenderTree(rhs):
+            print("%s%s %s" % (pre, node.name, node.val))
+
+    return zip(l_l, l) # consolidate the sentences into one big sentence -> equivalence
+
+
 
 
 
@@ -300,6 +398,19 @@ def save_rules(S):
         #print("end ", s)
         string_t = string_t + f"{l} <=> {s} \n\n"
     textfile = open("ruleset.txt", "w")
+    textfile.write(string_t)
+    textfile.close()
+
+def save_rules_eq(S):
+    string_t = "appended rules \n\n\n"
+    for l, r in S:
+        #print("\nTRAVERSE INORDER \n")
+        #for pre, fill, node in RenderTree(r):
+        #    print("%s%s%s" % (pre, node.name, node.val))
+        s = traverse_inorder(r, "")
+        #print("end ", s)
+        string_t = string_t + f"{l} <=> {s} \n\n"
+    textfile = open("ruleset.txt", "a")
     textfile.write(string_t)
     textfile.close()
 
@@ -329,7 +440,7 @@ connectives = ["AND", "OR", "NOT"]   # conjunction, disjunction, negation
 
 max_sen_length = 7
 LHS = []
-num_S = 2    # num_S < l_atoms
+num_S = 4    # num_S < l_atoms
 S = []
 rhs_all = []
 
@@ -371,5 +482,8 @@ for i in range(0, num_S):
 
 create_dag(S)
 save_rules(S)
+l = rewrite_rules(S, [], [])
+#save_rules_eq(l)
 predict_output(S)
+
 

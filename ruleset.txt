@@ -1,7 +1,11 @@
 RULES 
 
 
-a <=> (dANDf) 
+c <=> (gORNOTNOTh) 
 
-e <=> (aORb) 
+e <=> (cANDd) 
+
+f <=> (eORc) 
+
+b <=> (NOTdORf) 
 
